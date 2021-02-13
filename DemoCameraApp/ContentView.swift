@@ -95,8 +95,8 @@ struct CameraView: View {
                             }
                         }
                     )
-                    .animation(.easeInOut)//??
-            
+                    .animation(.easeInOut)
+                
                 HStack{
                     
                     Spacer()
