@@ -74,6 +74,30 @@ struct CameraView: View {
         })
     }
     
+    var infoBar: some View{
+        VStack {
+            if model.photo != nil {
+                Image(uiImage: model.photo.image!)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 60, height: 60)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .animation(.spring())
+                    .padding()
+                Spacer()
+                captureButton
+                Spacer()
+                Rectangle()
+                    .frame(width: 60, height: 60, alignment: .center)
+                    .opacity(0)
+                    .padding()
+            }else{
+                captureButton
+                }
+        }
+        .padding(.horizontal, 20)
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -98,36 +122,8 @@ struct CameraView: View {
                     .animation(.easeInOut)
                 
                 HStack{
-                    
                     Spacer()
-                    
-                    VStack {
-   
-                        if model.photo != nil {
-                            Image(uiImage: model.photo.image!)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 60, height: 60)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                .animation(.spring())
-                                .padding()
-                            
-                            Spacer()
-                            
-                            captureButton
-                            
-                            Spacer()
-                            
-                            Rectangle()
-                                .frame(width: 60, height: 60, alignment: .center)
-                                .opacity(0)
-                                .padding()
-                            
-                        }else{
-                            captureButton
-                            }
-                    }
-                    .padding(.horizontal, 20)
+                    infoBar
                 }
             }
         }
