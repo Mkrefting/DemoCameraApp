@@ -97,8 +97,6 @@ struct CameraView: View {
                     )
                     .animation(.easeInOut)
                 
-                // test commit
-                
                 HStack{
                     
                     Spacer()
