@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import UIKit
 
 final class CameraModel: ObservableObject {
     private let service = CameraService()
@@ -103,6 +104,7 @@ struct CameraView: View {
             ZStack {
                 Color.black.edgesIgnoringSafeArea(.all)
                 
+
                 CameraPreview(session: model.session)
                     .onAppear {
                         model.configure()
@@ -120,6 +122,9 @@ struct CameraView: View {
                         }
                     )
                     .animation(.easeInOut)
+                    
+                    // TO DO
+                    .rotationEffect(.degrees(-90), anchor: .center)
                 
                 HStack{
                     Spacer()
@@ -129,6 +134,7 @@ struct CameraView: View {
         }
     }
 }
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         CameraView()

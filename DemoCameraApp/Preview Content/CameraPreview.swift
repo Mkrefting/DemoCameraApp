@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct CameraPreview: UIViewRepresentable {
     class VideoPreviewView: UIView {
@@ -23,29 +24,28 @@ struct CameraPreview: UIViewRepresentable {
     }
     
     let session: AVCaptureSession
-    
+
     func makeUIView(context: Context) -> VideoPreviewView {
         let view = VideoPreviewView()
         view.backgroundColor = .black
         view.videoPreviewLayer.cornerRadius = 0
         view.videoPreviewLayer.session = session
-        // below is new
         view.videoPreviewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-        //view.videoPreviewLayer.connection?.videoOrientation = .portrait
-        //view.videoPreviewLayer.connection?.videoOrientation = .portrait
-
+        view.videoPreviewLayer.connection?.videoOrientation = .landscapeRight
         return view
     }
     
     func updateUIView(_ uiView: VideoPreviewView, context: Context) {
-        
+        // Able to change videoPreviewLayer.connection?.videoOrientation?:
+            //let deviceOrientation = UIDevice.current.orientation
+            //guard let newVideoOrientation = AVCaptureVideoOrientation(deviceOrientation: deviceOrientation) else {return view}
+            //view.videoPreviewLayer.connection?.videoOrientation = newVideoOrientation
     }
+    
 }
-
 struct CameraPreview_Previews: PreviewProvider {
     static var previews: some View {
         CameraPreview(session: AVCaptureSession())
             .frame(height: 300)
     }
 }
-

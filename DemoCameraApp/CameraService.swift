@@ -61,42 +61,33 @@ extension Photo {
 public class CameraService {
     typealias PhotoCaptureSessionID = String
     
-//    MARK: Observed Properties UI must react to
+    // MARK: Observed Properties UI must react to
+    // Initially disable UI until session starts running
 
-//    2.
     @Published public var shouldShowAlertView = false
-//    3.
+
     @Published public var shouldShowSpinner = false
-//    4.
+
     @Published public var willCapturePhoto = false
-//    5.
+
     @Published public var isCameraButtonDisabled = true
-//    6.
+
     @Published public var isCameraUnavailable = true
-//    8.
+
     @Published public var photo: Photo?
     
-
-//    MARK: Alert properties
+    // MARK: Alert properties
+    
     public var alertError: AlertError = AlertError()
     
-// MARK: Session Management Properties
     
-//    9
+    // MARK: Session Management Properties
+    
     public let session = AVCaptureSession()
-//    10
+
     var isSessionRunning = false
-//    12
+
     var isConfigured = false
-//    13
-    var setupResult: SessionSetupResult = .success
-//    14
-    // Communicate with the session and other session objects on this queue.
-    private let sessionQueue = DispatchQueue(label: "session queue")
-
-    @objc dynamic var videoDeviceInput: AVCaptureDeviceInput!
-
-    // MARK: Device Configuration Properties
     
     enum SessionSetupResult {
         case success
@@ -104,6 +95,16 @@ public class CameraService {
         case configurationFailed
     }
     
+    var setupResult: SessionSetupResult = .success
+
+    // Communicate with the session and other session objects on this queue.
+    private let sessionQueue = DispatchQueue(label: "session queue")
+
+    @objc dynamic var videoDeviceInput: AVCaptureDeviceInput!
+        
+    
+    // MARK: Device Configuration Properties
+
     private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera], mediaType: .video, position: .unspecified)
     
     // MARK: Capturing Photos
@@ -132,7 +133,7 @@ public class CameraService {
         }
     }
     
-    //  MARK: Checks for user's permisions
+    // MARK: Checks for user's permisions
     public func checkForPermissions() {
       
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -171,7 +172,7 @@ public class CameraService {
         }
     }
     
-    //  MARK: Session Management
+    // MARK: Session Management
     // Call this on the session queue.
     /// - Tag: ConfigureSession
     private func configureSession() {
@@ -204,7 +205,7 @@ public class CameraService {
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
                 self.videoDeviceInput = videoDeviceInput
-                
+
             } else {
                 print("Couldn't add video device input to the session.")
                 setupResult = .configurationFailed
@@ -232,7 +233,7 @@ public class CameraService {
             return
         }
         
-        //copied from changeCamera() - add video stabilisation. Do i want it??
+        // copied from changeCamera() - add video stabilisation. Do i want it??
         if let connection = self.photoOutput.connection(with: .video) {
             if connection.isVideoStabilizationSupported {
                 connection.preferredVideoStabilizationMode = .auto
@@ -270,7 +271,7 @@ public class CameraService {
     /// - Tag: Start capture session
     
     public func start() {
-//       Capture session queue ensures UI runs smoothly on the main thread.
+        // Capture session queue ensures UI runs smoothly on the main thread.
         sessionQueue.async {
             if !self.isSessionRunning && self.isConfigured {
                 switch self.setupResult {
@@ -299,18 +300,20 @@ public class CameraService {
         }
     }
 
-    //    MARK: Capture Photo
+    // MARK: Capture Photo
     
     /// - Tag: CapturePhoto
     public func capturePhoto() {
+
         if self.setupResult != .configurationFailed {
             self.isCameraButtonDisabled = true
             
             sessionQueue.async {
-                // MAX WHY PORTRAIT? CHANGE TO LANDSCAPE ONLY
-                // LOOK HERE
                 if let photoOutputConnection = self.photoOutput.connection(with: .video) {
-                    photoOutputConnection.videoOrientation = .portrait
+                    // MAX change: output save photo orientation = input view orientation
+                    // Currently: hardcoded for landscapeRight app use ONLY
+                    photoOutputConnection.videoOrientation = .landscapeRight
+    
                 }
                 var photoSettings = AVCapturePhotoSettings()
                 
@@ -328,7 +331,6 @@ public class CameraService {
                 
                 photoSettings.photoQualityPrioritization = .quality
                 
-                // MAX remove willCapturePhotoAnimation?
                 let photoCaptureProcessor = PhotoCaptureProcessor(with: photoSettings, willCapturePhotoAnimation: { [weak self] in
                     // Tells the UI to flash the screen to signal that SwiftCamera took a photo.
                     DispatchQueue.main.async {
@@ -366,6 +368,30 @@ public class CameraService {
                 self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = photoCaptureProcessor
                 self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
             }
+        }
+    }
+}
+
+// CHECK WHETHER IS NEEDED...
+extension AVCaptureVideoOrientation {
+    init?(deviceOrientation: UIDeviceOrientation) {
+        switch deviceOrientation {
+        case .portrait: self = .portrait
+        case .portraitUpsideDown: self = .portraitUpsideDown
+        // WATCH OUT BELOW
+        case .landscapeLeft: self = .landscapeRight
+        case .landscapeRight: self = .landscapeLeft
+        default: return nil
+        }
+    }
+    
+    init?(interfaceOrientation: UIInterfaceOrientation) {
+        switch interfaceOrientation {
+        case .portrait: self = .portrait
+        case .portraitUpsideDown: self = .portraitUpsideDown
+        case .landscapeLeft: self = .landscapeLeft
+        case .landscapeRight: self = .landscapeRight
+        default: return nil
         }
     }
 }
